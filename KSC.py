@@ -93,7 +93,8 @@ class KSC:
         self.k = k
         self.x_train = x_train
 
-        self.q, self.e, self.alpha, _, self.cm, self.ams_train = self.construct()
+        self.omega, self.alpha, self.bias, self.e, self.codebook = self.construct()
+        self.q, self.s, self.cm = self.membership(self.e)
 
     def construct(self, k=None , sigma=None):
         """
@@ -121,6 +122,7 @@ class KSC:
             md_matrix = np.eye(self.n) - np.matmul(np.ones([self.n, self.n]), d_matrix_inv) / np.sum(d_matrix_inv)
             ksc_matrix = np.matmul(d_matrix_inv, np.matmul(md_matrix, omega))
 
+            # TODO fix the accuracy of the eigenvector calculation
             eigval, eigvec = np.linalg.eig(ksc_matrix)
             sorted_i = np.argsort(eigval)[::-1]
 
@@ -129,21 +131,36 @@ class KSC:
                 alpha = np.real(eigvec[np.ix_(sorted_i)][:, 0:k[i] - 1])
                 b = -1 * (1 / np.sum(d_matrix_inv)) * np.sum(np.matmul(d_matrix_inv, np.matmul(omega, alpha)), axis=0,
                                                              keepdims=True)
-                e = np.matmul(omega, alpha) + np.tile(b, [self.n, 1])
+                bias = np.tile(b, [self.n, 1])
+                e = np.matmul(omega, alpha) + bias
 
-                self.codebook = KSC.ksc_codebook(e)
-                q, s, cm = self._ksc_membership(e, self.codebook)
-                ams = KSC.ams(cm)
+                codebook = KSC.ksc_codebook(e)
 
         # TODO finish the implementation for k-ranges and sigma-ranges
 
-        return q, e, alpha, s, cm, ams
+        return omega, alpha, bias, e, codebook
 
-    def create_initializers(self, k, sigma):
+    def get_centroids_initializer(self, dtype='float64'):
 
-        pass
+        return tf.constant_initializer(self.x_train, dtype=dtype)
 
-    def _ksc_membership(self, e, codebook):
+    def get_alpha_initializer(self, dtype='float64'):
+
+        return tf.constant_initializer(self.alpha, dtype=dtype)
+
+    def get_bias_initializer(self, dtype='float64'):
+
+        return tf.constant_initializer(self.bias, dtype=dtype)
+
+    def get_prototype_initializer(self, dtype='float64'):
+
+        return tf.constant_initializer(self.s, dtype=dtype)
+
+    def get_sigma_initializer(self, dtype='float64'):
+
+        return tf.constant_initializer(self.sigma, dtype=dtype)
+
+    def membership(self, e, codebook=None):
         """
             Calculates for each projected point (= rows in e) in which cluster
             it belongs. In case of soft clustering this is done in terms of
@@ -152,6 +169,9 @@ class KSC:
             :param codebook: Codebook as specified in KSC algorithm
             :return:
             """
+        if codebook is None:
+            codebook = self.codebook
+
         k = codebook.shape[0]
         d = codebook.shape[1]
         n = e.shape[0]

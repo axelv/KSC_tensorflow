@@ -1,4 +1,4 @@
-import KSC
+from KSC import KSC
 import numpy as np
 import plot_tools as plt
 import io_tools as iot
@@ -16,9 +16,10 @@ sigma_f = 0.1
 sigma = np.array([sigma_f])
 k = np.array([2])
 
-ksc_model = KSC.KSC(X, k, sigma)
+ksc_model = KSC(X, k, sigma)
+ams = KSC.ams(ksc_model.cm)
 
-print("AMS: "+str(ksc_model.ams_train))
+print("AMS: "+str(ams))
 print("Done")
 
 plt.plot2D(X,y, title="Ground truth")

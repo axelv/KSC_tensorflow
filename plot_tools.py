@@ -64,5 +64,6 @@ def plot_2kpcs(x, sigma, y=None, title="Kernel Principal Components", xlabel="1s
     plt.ylabel(ylabel)
 
     return fig
+
 def show():
     plt.show()
