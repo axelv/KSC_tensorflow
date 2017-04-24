@@ -78,10 +78,9 @@ class KSC:
         d = x.shape[1]
         #sigma_inv = np.linalg.inv(sigma)
         #weighted_x = np.matmul(x, sigma)
-        sq_x = np.sum(np.square(x), axis=1, keepdims=True)
-        omega = np.exp(-0.5/np.square(sigma) * (
-            np.matmul(np.ones([N, 1]), sq_x.T) - 2 * np.matmul(x, x.T) + np.matmul(sq_x,
-                                                                                                     np.ones([1, N]))))
+        sq_x = np.sum(np.square(x, dtype='float64'), axis=1, keepdims=True, dtype='float64')
+        omega = np.exp(-0.5/np.square(sigma, dtype='float64') * (
+            np.matmul(np.ones([N, 1]), sq_x.T) - 2 * np.matmul(x, x.T) + np.matmul(sq_x, np.ones([1, N]))), dtype='float64')
         return omega
 
     def __init__(self, x_train, k, sigma):

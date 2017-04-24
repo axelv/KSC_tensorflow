@@ -4,11 +4,11 @@ import plot_tools as plt
 import io_tools as iot
 from sklearn.datasets import make_circles
 
-#X, y = make_circles(n_samples=400, factor=0.3, noise=.05)
-data = iot.from_matlab("numpy")
+X, y = make_circles(n_samples=400, factor=0.3, noise=.05)
+#data = iot.from_matlab("numpy")
 #iot.to_matlab([X, y])
-X = data['numpy0']
-y = data['numpy1']
+#X = data['numpy0']
+#y = data['numpy1']
 
 #sigma =  np.expand_dims(np.eye(2)*0.001,0)
 sigma_f = 0.1
