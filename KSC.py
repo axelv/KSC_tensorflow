@@ -93,7 +93,7 @@ class KSC:
         self.k = k
         self.x_train = x_train
 
-        self.omega, self.alpha, self.bias, self.e, self.codebook = self.construct()
+        self.omega, self.alpha, self.b, self.e, self.codebook = self.construct()
         self.q, self.s, self.cm = self.membership(self.e)
 
     def construct(self, k=None , sigma=None):
@@ -138,27 +138,27 @@ class KSC:
 
         # TODO finish the implementation for k-ranges and sigma-ranges
 
-        return omega, alpha, bias, e, codebook
+        return omega, alpha, b, e, codebook
 
-    def get_centroids_initializer(self, dtype='float64'):
+    def get_centroids_initializer(self, dtype=tf.float64):
 
         return tf.constant_initializer(self.x_train, dtype=dtype)
 
-    def get_alpha_initializer(self, dtype='float64'):
+    def get_alpha_initializer(self, dtype=tf.float64):
 
         return tf.constant_initializer(self.alpha, dtype=dtype)
 
-    def get_bias_initializer(self, dtype='float64'):
+    def get_bias_initializer(self, dtype=tf.float64):
 
-        return tf.constant_initializer(self.bias, dtype=dtype)
+        return tf.constant_initializer(self.b, dtype=dtype)
 
-    def get_prototype_initializer(self, dtype='float64'):
+    def get_prototype_initializer(self, dtype=tf.float64):
 
         return tf.constant_initializer(self.s, dtype=dtype)
 
-    def get_sigma_initializer(self, dtype='float64'):
+    def get_sigma_initializer(self, dtype=tf.float64):
 
-        return tf.constant_initializer(self.sigma, dtype=dtype)
+        return tf.constant_initializer(np.eye(self.d)*self.sigma, dtype=dtype)
 
     def membership(self, e, codebook=None):
         """
