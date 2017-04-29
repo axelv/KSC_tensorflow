@@ -35,7 +35,12 @@ class KSC:
         k = d + 1
 
         e_binary = np.sign(e)
-        unique_cw, cw_indices, counts = np.unique(e_binary, return_index=True, return_counts=True)
+        unique_cw = np.vstack({tuple(row) for row in e_binary})
+        counts = np.zeros([unique_cw.shape[0]])
+
+        for i in range(unique_cw.shape[0]):
+            check = (e_binary == unique_cw[i,:]).astype(int).sum(axis=1)
+            counts[i] = (check == 2).astype(int).sum()
 
         if(len(unique_cw.shape)==1):
             unique_cw = np.expand_dims(unique_cw, -1)
@@ -45,19 +50,15 @@ class KSC:
 
         # REMARK maybe cluster prototypes should be calculated here.
         # That way points with deviant cluster indicators are not used for centre calculation
-        # TODO calculate the centres of the alpha vectors per cluster indicator
+        # TODO calculate the centers of the alpha vectors per cluster indicator
 
         return codebook
 
     @staticmethod
-    def cluster_membership(s, e):
+    def cluster_membership(d_cos):
 
-        n = e.shape[0]
-        k = s.shape[0]
-        d = s.shape[1]
-        e_norm = e / nplin.norm(e, axis=1, keepdims=True)
-        s_norm = s / nplin.norm(s, axis=1, keepdims=True)
-        d_cos = np.ones([n, k]) - np.matmul(e_norm, s_norm.transpose())
+        n = d_cos.shape[0]
+        k = d_cos.shape[1]
 
         # cluster membership:
         # cm is matrix with n rows and k columns
@@ -67,9 +68,9 @@ class KSC:
             d_cos_temp[:, i] = 1
             prod_matrix[:,i] = np.prod(d_cos_temp, axis=1)
 
-        cm = prod_matrix / np.sum(prod_matrix, axis=1, keepdims=True)
+        cm = np.abs(prod_matrix / np.sum(prod_matrix, axis=1, keepdims=True))
 
-        return cm
+        return np.clip(cm, 0, 1)
 
     @staticmethod
     def kernel_matrix(x, sigma, kernel_type='rbf'):
@@ -94,7 +95,10 @@ class KSC:
         self.x_train = x_train
 
         self.omega, self.alpha, self.b, self.e, self.codebook = self.construct()
-        self.q, self.s, self.cm = self.membership(self.e)
+        self.q, self.s = self.hard_cluster(self.e)
+        d_cos = self.project_data(self.e)
+        self.cm = KSC.cluster_membership(d_cos)
+
 
     def construct(self, k=None , sigma=None):
         """
@@ -128,7 +132,7 @@ class KSC:
 
             for j in range(len_k):
 
-                alpha = np.real(eigvec[np.ix_(sorted_i)][:, 0:k[i] - 1])
+                alpha = np.real(eigvec[:,sorted_i])[:, 0:k[i] - 1]
                 b = -1 * (1 / np.sum(d_matrix_inv)) * np.sum(np.matmul(d_matrix_inv, np.matmul(omega, alpha)), axis=0,
                                                              keepdims=True)
                 bias = np.tile(b, [self.n, 1])
@@ -160,7 +164,7 @@ class KSC:
 
         return tf.constant_initializer(np.eye(self.d)*self.sigma, dtype=dtype)
 
-    def membership(self, e, codebook=None):
+    def hard_cluster(self, e, codebook=None):
         """
             Calculates for each projected point (= rows in e) in which cluster
             it belongs. In case of soft clustering this is done in terms of
@@ -194,5 +198,14 @@ class KSC:
 
             s[i, :] = np.mean(e[q == [i]], axis=0)
 
-        cm = KSC.cluster_membership(s, e)
-        return q, s, cm
+        return q, s
+
+    def project_data(self, e):
+
+        n = e.shape[0]
+        k = self.s.shape[0]
+        e_norm = e / nplin.norm(e, axis=1, keepdims=True)
+        s_norm = self.s / nplin.norm(self.s, axis=1, keepdims=True)
+        d_cos = np.ones([n, k]) - np.matmul(e_norm, s_norm.transpose())
+
+        return d_cos

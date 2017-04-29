@@ -11,10 +11,11 @@ X, y = make_circles(n_samples=400, factor=0.3, noise=.05)
 #y = data['numpy1']
 
 #sigma =  np.expand_dims(np.eye(2)*0.001,0)
-sigma_f = 0.1
 
+sigma_f = 0.1
+k_int = 2
 sigma = np.array([sigma_f])
-k = np.array([2])
+k = np.array([k_int])
 
 ksc_model = KSC(X, k, sigma)
 ams = KSC.ams(ksc_model.cm)

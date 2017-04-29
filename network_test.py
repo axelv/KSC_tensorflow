@@ -2,9 +2,13 @@ import tensorflow as tf
 import numpy as np
 from layers import *
 import io_tools
-import plot_tools
+import plot_tools as plt
 from KSC import KSC
 from sklearn.datasets import make_circles
+
+
+# DESCRIPTION
+# Demo of a network version of KSC in 'out-of-sample' mode
 
 # GENERAL PARAMETERS
 
@@ -41,11 +45,11 @@ with tf.Graph().as_default():
         k = np.array([k_int])
 
         X_train, y = make_circles(n_samples=n_train, factor=0.3, noise=.05)
-        X_test, y = make_circles(n_samples=n_test, factor=0.3, noise=.05)
+        X_test, y = make_circles(n_samples=n_test, factor=0.4, noise=.05)
 
         ksc_model = KSC(X_train, k, sigma)
 
-        x = tf.placeholder(tf.float64, [None, d])
+        x = tf.placeholder(tf.float64, [n_test, d])
         #y = tf.placeholder(tf.float64, [None, k])
 
         cluster_out = ksc_net(x, ksc_model)
@@ -55,6 +59,10 @@ with tf.Graph().as_default():
         sess = tf.Session()
         sess.run(init_op)
 
-        cosd_test = sess.run([cluster_out], feed_dict={x: X_test})
+        cosd_test = np.asarray(sess.run([cluster_out], feed_dict={x: X_test}))
 
+        ### PLOTS ###
+        cluster_id = (cosd_test == cosd_test.max(axis=1)).astype(int)
 
+        plt.plot2D(X_test, y=cluster_id[:,:,0])
+        plt.show()
