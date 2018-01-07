@@ -14,7 +14,7 @@ to update the weights of the network.
 
 ## File Description
 
-- [KSC.py](./KSC.py): the full KSC algorithm. The terminology used in the comments is conform the paper. An example on how to use the algorithm standalone is available in (KSC_test.py)[./KSC_test.py]
+- [KSC.py](./KSC.py): the full KSC algorithm. The terminology used in the comments is conform the paper. An example on how to use the algorithm standalone is available in [KSC_test.py](./KSC_test.py)
 - [layers.py](./layers.py): the necessary neural network layers written in TensorFlow which make it possible to frame the KSC-algorithm in a RBF-network.
 - [network_test.py](./network_test.py): a test of the out-of-sample extension of the clustering algorithm using the layers from [layers.py](./layers.py)
 - [backprop_test.py](./backprop_test.py): a test using backpropagation on the above-mentioned RBF-network with slowly moving clusters. The cluster results are plotted in the image tab in TensorBoard.
